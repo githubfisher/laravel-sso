@@ -1,0 +1,22 @@
+{
+    "name": "laravel-sso",
+    "description": "Single Sign On for Laravel",
+    "keywords": ["Single Sign On", "SSO","laravel", "Auth"],
+    "require": {
+        "githubfisher/laravel-sso": "~1.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "LaravelSso\\Server\\": "src/"
+        }
+    },
+
+    "license": "MIT",
+    "minimum-stability" : "dev",
+    "authors": [
+        {
+            "name": "githubfisher",
+            "email": "gooodfisher@126.com"
+        }
+    ]
+}
