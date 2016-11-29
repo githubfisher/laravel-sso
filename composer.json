@@ -1,9 +1,9 @@
 {
-    "name": "laravel-sso",
+    "name": "laravelsso",
     "description": "Single Sign On for Laravel",
     "keywords": ["Single Sign On", "SSO","laravel", "Auth"],
     "require": {
-        "githubfisher/laravel-sso": "~1.0"
+        "githubfisher/laravelsso": "~0.0.1"
     },
     "autoload": {
         "psr-4": {
