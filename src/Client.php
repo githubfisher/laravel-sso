@@ -25,19 +25,29 @@ class Client
 	public function isLogin()
 	{
 		$ticket = $this->getTicket();
+		logger('用户凭证：'.var_export($ticket,true)); // debug
 		if(isset($ticket['id'])){
+			logger('存在用户凭证....');
 			if(($ticket['expire_time']+$ticket['create_at']) > time()){
-				$leftTimes = (time()-$ticket['create_at'])/$this->_reCheckTime;
+				logger('用户凭证在有效期内....');
+				$leftTimes = (time()-$ticket['check_at'])/$this->_reCheckTime;
 				if($leftTimes < 1){
+					logger('检查时间间隔：'.$this->_reCheckTime);
+					logger('不需要向服务器核验用户凭证...'."\n");
 					return true;
 				}else{
-					$this->_reCheckTime = $this->_config['reCheckTime'] * (ceil($leftTimes) + 1);
+					logger('需要向服务器核验用户凭证...'."\n");
 					$this->toServerIsLogin();
+					return;
 				}
 			}
+			logger('用户凭证bu在有效期内....'."\n");
 			$this->toServerIsLogin();
+			return;
 		}
+		logger('bu存在用户凭证....'."\n");
 		$this->toServerIsLogin();
+		return;
 	}
 
 	/*
@@ -49,7 +59,9 @@ class Client
 		// check Server Signature
 		if(!$this->checkSignature($request))
 			return false;
+		logger('获取用户信息...');
 		$this->setTicket($request);
+		logger('设置用户登录信息完成...'."\n");
 		return true;
 	}
 
@@ -204,7 +216,8 @@ class Client
 		$ticket = array(
 				'id' => $request['ticket'],
 				'create_at' => $request['create_at'],
-				'expire_time' => $request['expire_time']
+				'expire_time' => $request['expire_time'],
+				'check_at' => $request['check_at']
 			);
 		$this->setCookie($ticket);
 		$userInfo = $this->chanslate_add_to_empty($request['user']);

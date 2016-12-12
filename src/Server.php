@@ -21,6 +21,7 @@ class Server
 	 */
 	public function isLogin($request)
 	{
+		logger('cookies:'.var_export($_COOKIE,true));
 		// callback URL
 		$callback = $request['callback'];
 		$appId = $request['appId'];
@@ -31,20 +32,29 @@ class Server
 			$this->toLogin($callback,$appId);
 		}
 		$ticket = $this->getTicket();
+		logger('当前存储的登录凭证：'.var_export($ticket,true)); // debug
 		if(isset($ticket['id'])){
+			logger('存在用户登录凭证');
 			if(($ticket['expire_time']+$ticket['create_at']) > time()){
+				logger('登录凭证未过期');
 				// add client application info to ticket
-				$this->setTicket(true,$appId);
+				$this->setTicket(true,$ticket,$appId);
+				logger('告知用户系统已登录！'."\n");
 				// Redirect to Client Login Controller
 				$this->toClientLogin($callback,$appId);
+				return;
 			}else{
+				logger('登录凭证过期！！！'."\n");
 				// Redirect to LoginView
 				$this->deleteTicket();
 				$this->toLogin($callback,$appId);
+				return;
 			}
 		}else{
+			logger('不存在用户登录凭证！！'."\n");
 			// Redirect to LoginView
 			$this->toLogin($callback,$appId);
+			return;
 		}
 	}
 
@@ -146,7 +156,7 @@ class Server
 	private function getTicketInfo()
 	{
 		$ticket = $this->getTicket();
-		return '&ticket='.$ticket['id'].'&create_at='.$ticket['create_at'].'&expire_time='.$ticket['expire_time'].'&user='.$ticket['user'];
+		return '&ticket='.$ticket['id'].'&create_at='.$ticket['create_at'].'&check_at='.$ticket['check_at'].'&expire_time='.$ticket['expire_time'].'&user='.$ticket['user'];
 	}
 
 	/*
@@ -225,6 +235,7 @@ class Server
 			$ticket = array(
 				'id' => $this->getRand(),
 				'create_at' => time(),
+				'check_at' => time(),
 				'expire_time' => $this->_config['expire_time'],
 				'user' => $userInfo,
 				'clients' => array($appId)
@@ -241,14 +252,15 @@ class Server
 	 * set ticket 
 	 * @return none
 	 */
-	private function setTicket($type=false,$ticket,$data)
+	private function setTicket($type=false,$ticket,$appId)
 	{
 		$name = $this->_config['ticketName'];
 
 		if($type){
 			// add client info to old ticket
-			if(!array_search($data,$ticket['clients']))
-				$ticket['clients'][] = $data;
+			if(!array_search($appId,$ticket['clients']))
+				$ticket['clients'][] = $appId;
+			$ticket['check_at'] = time();
 			setcookie($name,$ticket);
 			$_SESSION[$name] = $ticket;
 		}else{
@@ -257,6 +269,7 @@ class Server
 			setcookie($name."['id']",$ticket['id'],time()+$expire_time);
 			setcookie($name."['create_at']",$ticket['create_at'],time()+$expire_time);
 			setcookie($name."['expire_time']",$ticket['expire_time'],time()+$expire_time);
+			setcookie($name."['check_at']",$ticket['check_at'],time()+$expire_time);
 			$i = 0;
 			foreach($ticket['clients'] as $client){
 				setcookie($name.'[\'clients\']['.$i.']',$client,time()+$expire_time);
