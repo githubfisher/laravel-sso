@@ -1,4 +1,6 @@
 <?php
+namespace LaravelSso\Server;
+
 class Client
 {
 	protected $_config;

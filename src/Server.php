@@ -1,4 +1,6 @@
 <?php
+namespace LaravelSso\Server;
+
 class Server
 {
 	protected static $_config;
@@ -21,37 +23,27 @@ class Server
 	 */
 	public function isLogin($request)
 	{
-		logger('cookies:'.var_export($_COOKIE,true));
 		// callback URL
 		$callback = $request['callback'];
 		$appId = $request['appId'];
 
 		// check Signature
 		if(!$this->checkSignature($request)){
-			// Redirect to LoginView
 			$this->toLogin($callback,$appId);
 		}
 		$ticket = $this->getTicket();
-		logger('当前存储的登录凭证：'.var_export($ticket,true)); // debug
 		if(isset($ticket['id'])){
-			logger('存在用户登录凭证');
 			if(($ticket['expire_time']+$ticket['create_at']) > time()){
-				logger('登录凭证未过期');
-				// add client application info to ticket
 				$this->setTicket(true,$ticket,$appId);
-				logger('告知用户系统已登录！'."\n");
-				// Redirect to Client Login Controller
 				$this->toClientLogin($callback,$appId);
 				return;
 			}else{
-				logger('登录凭证过期！！！'."\n");
 				// Redirect to LoginView
 				$this->deleteTicket();
 				$this->toLogin($callback,$appId);
 				return;
 			}
 		}else{
-			logger('不存在用户登录凭证！！'."\n");
 			// Redirect to LoginView
 			$this->toLogin($callback,$appId);
 			return;
@@ -142,7 +134,7 @@ class Server
 	 * Rediect to Server Login Page
 	 * @return none
 	 */
-	private function toLogin($callback,$appId)
+	public function toLogin($callback,$appId)
 	{
 		// $signature = 
 		$loginUrl = $this->_config['loginView'].$this->signature().'&appId='.$appId.'&callback='.$callback;
