@@ -58,14 +58,4 @@ class ServiceProvider extends LaravelServiceProvider
             return new Server(config('sso'));
         });
     }
-
-    /**
-     * 提供的服务
-     *
-     * @return array
-     */
-    public function provides()
-    {
-        return ['sso', 'LaravelSso\\Server\\Server'];
-    }
 }
